@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Form, Link } from "react-router";
 import AuthCard from "~/components/auth/auth-card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -10,18 +10,47 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Sign In | React Router Starter Kit" }];
 }
 
+export async function loader({ request }: Route.LoaderArgs) {}
+
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/accounts/login/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = (await response).json().then((data) => {
+      console.log(data);
+    });
+
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 export default function SignIn() {
   return (
     <AuthCard
       title="React Router Starter Kit"
       description="Sign in to your account"
     >
-      <form>
+      <Form method="POST">
         <div className="flex flex-col gap-6">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="gabrielpistore@example.com"
               required
@@ -37,7 +66,7 @@ export default function SignIn() {
                 Forgot your password?
               </a>
             </div>
-            <Input id="password" type="password" required />
+            <Input id="password" name="password" type="password" required />
           </div>
           <Button type="submit" className="w-full">
             Login
@@ -49,7 +78,7 @@ export default function SignIn() {
             Sign up
           </Link>
         </div>
-      </form>
+      </Form>
     </AuthCard>
   );
 }
